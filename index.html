@@ -1,0 +1,1032 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SurveyEarn - Complete Surveys, Earn Money</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --dark: #121212;
+            --light: #ffffff;
+            --gray: #2d3436;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --error: #e74c3c;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Auth Pages */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--gray) 100%);
+        }
+
+        .auth-box {
+            background-color: var(--light);
+            color: var(--dark);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .auth-header p {
+            color: var(--gray);
+            font-size: 1rem;
+        }
+
+        .auth-logo {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .auth-logo i {
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--gray);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--gray);
+        }
+
+        .auth-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .error {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+
+        .success {
+            background-color: rgba(0, 184, 148, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: none;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background-color: rgba(18, 18, 18, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo i {
+            color: var(--primary);
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: var(--light);
+            color: var(--dark);
+            border-radius: 10px;
+            padding: 10px 0;
+            min-width: 150px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 1000;
+        }
+
+        .profile-dropdown.show {
+            display: block;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .dropdown-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(108, 92, 231, 0.1);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 40px 0;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        /* Balance Section */
+        .balance-section {
+            background-color: var(--light);
+            color: var(--dark);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: slideInLeft 0.8s ease-out;
+        }
+
+        .balance-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .balance-info h2 {
+            font-size: 1.2rem;
+            color: var(--gray);
+            margin-bottom: 10px;
+        }
+
+        .balance-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .balance-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        /* Tasks Section */
+        .tasks-section {
+            animation: slideInRight 0.8s ease-out;
+        }
+
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .task-card {
+            background-color: var(--light);
+            color: var(--dark);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .task-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .task-reward {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .task-description {
+            color: var(--gray);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .task-time {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .task-progress {
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .balance-card {
+                flex-direction: column;
+                gap: 20px;
+                align-items: flex-start;
+            }
+
+            .balance-actions {
+                width: 100%;
+            }
+
+            .btn {
+                text-align: center;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Pages -->
+    <div class="auth-container" id="auth-container">
+        <div class="auth-box" id="login-box">
+            <div class="auth-logo">
+                <i class="fas fa-poll"></i>
+            </div>
+            <div class="auth-header">
+                <h1>SurveyEarn</h1>
+                <p>Complete surveys and earn money</p>
+            </div>
+            <div id="login-message" class="message error"></div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" class="form-control" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn" id="login-btn">
+                    <span class="spinner" id="login-spinner" style="display: none;"></span>
+                    <span id="login-text">Sign In</span>
+                </button>
+            </form>
+            <div class="auth-footer">
+                <p>Don't have an account? <a id="switch-to-signup">Sign Up</a></p>
+            </div>
+        </div>
+
+        <div class="auth-box" id="signup-box" style="display: none;">
+            <div class="auth-logo">
+                <i class="fas fa-poll"></i>
+            </div>
+            <div class="auth-header">
+                <h1>SurveyEarn</h1>
+                <p>Create your account</p>
+            </div>
+            <div id="signup-message" class="message error"></div>
+            <form id="signup-form">
+                <div class="form-group">
+                    <label for="signup-name">Full Name</label>
+                    <input type="text" id="signup-name" class="form-control" placeholder="Enter your full name" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" class="form-control" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" class="form-control" placeholder="Create a password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" class="form-control" placeholder="Confirm your password" required>
+                </div>
+                <button type="submit" class="btn" id="signup-btn">
+                    <span class="spinner" id="signup-spinner" style="display: none;"></span>
+                    <span id="signup-text">Create Account</span>
+                </button>
+            </form>
+            <div class="auth-footer">
+                <p>Already have an account? <a id="switch-to-login">Sign In</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">
+                        <i class="fas fa-poll"></i>
+                        <span>SurveyEarn</span>
+                    </div>
+                    <div class="nav">
+                        <div class="nav-item">
+                            <i class="fas fa-home"></i>
+                            <span>Home</span>
+                        </div>
+                        <div class="nav-item">
+                            <i class="fas fa-tasks"></i>
+                            <span>My Surveys</span>
+                        </div>
+                        <div class="nav-item">
+                            <i class="fas fa-history"></i>
+                            <span>History</span>
+                        </div>
+                        <div class="user-profile" id="user-profile">
+                            <div class="avatar" id="user-avatar">JD</div>
+                            <span id="user-name">John Doe</span>
+                            <i class="fas fa-chevron-down"></i>
+                            <div class="profile-dropdown" id="profile-dropdown">
+                                <div class="dropdown-item" id="profile-item">
+                                    <i class="fas fa-user"></i> Profile
+                                </div>
+                                <div class="dropdown-item" id="logout-item">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                <!-- Balance Section -->
+                <section class="balance-section">
+                    <div class="balance-card">
+                        <div class="balance-info">
+                            <h2>Your Balance</h2>
+                            <div class="balance-amount">৳ <span id="user-balance">1,250</span></div>
+                            <p>Complete more surveys to increase your balance</p>
+                        </div>
+                        <div class="balance-actions">
+                            <button class="btn"><i class="fas fa-plus"></i> Add Funds</button>
+                            <button class="btn btn-secondary"><i class="fas fa-download"></i> Withdraw</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tasks Section -->
+                <section class="tasks-section">
+                    <h2 class="section-title"><i class="fas fa-list-alt"></i> Available Surveys</h2>
+                    <div class="tasks-grid" id="tasks-grid">
+                        <!-- Tasks will be loaded here -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD0pYwFNPCsY7JjcgPiTu5eHT-OwJmSBLg",
+            authDomain: "earn-spark.firebaseapp.com",
+            projectId: "earn-spark",
+            storageBucket: "earn-spark.firebasestorage.app",
+            messagingSenderId: "874371204071",
+            appId: "1:874371204071:web:ae8a0ad4edd19ec5beb342",
+            measurementId: "G-4JMVZ1EPFZ"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // DOM Elements
+        const authContainer = document.getElementById('auth-container');
+        const dashboard = document.getElementById('dashboard');
+        const loginBox = document.getElementById('login-box');
+        const signupBox = document.getElementById('signup-box');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const switchToSignup = document.getElementById('switch-to-signup');
+        const switchToLogin = document.getElementById('switch-to-login');
+        const userProfile = document.getElementById('user-profile');
+        const profileDropdown = document.getElementById('profile-dropdown');
+        const logoutItem = document.getElementById('logout-item');
+        const userAvatar = document.getElementById('user-avatar');
+        const userName = document.getElementById('user-name');
+        const userBalance = document.getElementById('user-balance');
+        const tasksGrid = document.getElementById('tasks-grid');
+        const loginMessage = document.getElementById('login-message');
+        const signupMessage = document.getElementById('signup-message');
+        const loginBtn = document.getElementById('login-btn');
+        const loginSpinner = document.getElementById('login-spinner');
+        const loginText = document.getElementById('login-text');
+        const signupBtn = document.getElementById('signup-btn');
+        const signupSpinner = document.getElementById('signup-spinner');
+        const signupText = document.getElementById('signup-text');
+
+        // Sample survey data
+        const surveys = [
+            {
+                id: 1,
+                title: "Consumer Preferences Survey",
+                description: "Share your preferences on various consumer products and help brands improve their offerings.",
+                reward: 120,
+                time: 15,
+                participants: 245,
+                progress: 65
+            },
+            {
+                id: 2,
+                title: "Technology Usage Study",
+                description: "Tell us about your technology usage habits and preferences for a research study.",
+                reward: 200,
+                time: 25,
+                participants: 189,
+                progress: 40
+            },
+            {
+                id: 3,
+                title: "Health & Wellness Survey",
+                description: "Share your health and wellness habits to help improve healthcare services.",
+                reward: 150,
+                time: 20,
+                participants: 312,
+                progress: 80
+            },
+            {
+                id: 4,
+                title: "Shopping Habits Research",
+                description: "Participate in a study about online and offline shopping behaviors.",
+                reward: 100,
+                time: 10,
+                participants: 421,
+                progress: 75
+            },
+            {
+                id: 5,
+                title: "Entertainment Preferences",
+                description: "Share your preferences for movies, music, and other entertainment.",
+                reward: 80,
+                time: 12,
+                participants: 298,
+                progress: 55
+            },
+            {
+                id: 6,
+                title: "Social Media Usage",
+                description: "Help us understand how people use social media platforms.",
+                reward: 90,
+                time: 18,
+                participants: 367,
+                progress: 70
+            }
+        ];
+
+        // Switch between login and signup forms
+        switchToSignup.addEventListener('click', function(e) {
+            e.preventDefault();
+            loginBox.style.display = 'none';
+            signupBox.style.display = 'block';
+            loginMessage.style.display = 'none';
+            signupMessage.style.display = 'none';
+        });
+
+        switchToLogin.addEventListener('click', function(e) {
+            e.preventDefault();
+            signupBox.style.display = 'none';
+            loginBox.style.display = 'block';
+            loginMessage.style.display = 'none';
+            signupMessage.style.display = 'none';
+        });
+
+        // Show/hide profile dropdown
+        userProfile.addEventListener('click', function() {
+            profileDropdown.classList.toggle('show');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!userProfile.contains(e.target)) {
+                profileDropdown.classList.remove('show');
+            }
+        });
+
+        // Login form submission
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            // Show loading state
+            loginBtn.disabled = true;
+            loginSpinner.style.display = 'inline-block';
+            loginText.textContent = 'Signing In...';
+            loginMessage.style.display = 'none';
+            
+            // Firebase login
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Signed in
+                    const user = userCredential.user;
+                    console.log("User signed in:", user);
+                    
+                    // Reset form
+                    loginForm.reset();
+                    
+                    // Load user data and show dashboard
+                    loadUserData(user);
+                    showDashboard();
+                })
+                .catch((error) => {
+                    // Handle errors
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    
+                    loginMessage.textContent = getErrorMessage(errorCode);
+                    loginMessage.className = 'message error';
+                    loginMessage.style.display = 'block';
+                    
+                    console.error("Login error:", errorCode, errorMessage);
+                })
+                .finally(() => {
+                    // Reset loading state
+                    loginBtn.disabled = false;
+                    loginSpinner.style.display = 'none';
+                    loginText.textContent = 'Sign In';
+                });
+        });
+
+        // Signup form submission
+        signupForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                signupMessage.textContent = "Passwords don't match";
+                signupMessage.className = 'message error';
+                signupMessage.style.display = 'block';
+                return;
+            }
+            
+            // Show loading state
+            signupBtn.disabled = true;
+            signupSpinner.style.display = 'inline-block';
+            signupText.textContent = 'Creating Account...';
+            signupMessage.style.display = 'none';
+            
+            // Firebase signup
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Signed up
+                    const user = userCredential.user;
+                    
+                    // Create user document in Firestore
+                    return db.collection('users').doc(user.uid).set({
+                        name: name,
+                        email: email,
+                        balance: 0,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                })
+                .then(() => {
+                    // Reset form
+                    signupForm.reset();
+                    
+                    // Switch to login form with success message
+                    signupBox.style.display = 'none';
+                    loginBox.style.display = 'block';
+                    loginMessage.textContent = "Account created successfully! Please sign in.";
+                    loginMessage.className = 'message success';
+                    loginMessage.style.display = 'block';
+                })
+                .catch((error) => {
+                    // Handle errors
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    
+                    signupMessage.textContent = getErrorMessage(errorCode);
+                    signupMessage.className = 'message error';
+                    signupMessage.style.display = 'block';
+                    
+                    console.error("Signup error:", errorCode, errorMessage);
+                })
+                .finally(() => {
+                    // Reset loading state
+                    signupBtn.disabled = false;
+                    signupSpinner.style.display = 'none';
+                    signupText.textContent = 'Create Account';
+                });
+        });
+
+        // Logout functionality
+        logoutItem.addEventListener('click', function() {
+            auth.signOut()
+                .then(() => {
+                    console.log("User signed out");
+                    showAuth();
+                })
+                .catch((error) => {
+                    console.error("Logout error:", error);
+                });
+        });
+
+        // Show dashboard
+        function showDashboard() {
+            authContainer.style.display = 'none';
+            dashboard.style.display = 'block';
+            loadSurveys();
+        }
+
+        // Show auth forms
+        function showAuth() {
+            dashboard.style.display = 'none';
+            authContainer.style.display = 'flex';
+            loginBox.style.display = 'block';
+            signupBox.style.display = 'none';
+            loginMessage.style.display = 'none';
+            signupMessage.style.display = 'none';
+        }
+
+        // Load user data
+        function loadUserData(user) {
+            // Get user data from Firestore
+            db.collection('users').doc(user.uid).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        
+                        // Update UI with user data
+                        userName.textContent = userData.name;
+                        userAvatar.textContent = userData.name.charAt(0).toUpperCase();
+                        userBalance.textContent = userData.balance.toLocaleString();
+                    } else {
+                        console.error("No user data found");
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error getting user data:", error);
+                });
+        }
+
+        // Load surveys
+        function loadSurveys() {
+            tasksGrid.innerHTML = '';
+            
+            surveys.forEach(survey => {
+                const taskCard = document.createElement('div');
+                taskCard.className = 'task-card';
+                taskCard.innerHTML = `
+                    <div class="task-header">
+                        <div>
+                            <h3 class="task-title">${survey.title}</h3>
+                            <div class="task-meta">
+                                <div class="task-time">
+                                    <i class="far fa-clock"></i>
+                                    <span>${survey.time} mins</span>
+                                </div>
+                                <div class="task-participants">
+                                    <i class="fas fa-users"></i>
+                                    <span>${survey.participants} participants</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task-reward">৳ ${survey.reward}</div>
+                    </div>
+                    <p class="task-description">${survey.description}</p>
+                    <div class="task-progress">
+                        <div class="progress-bar" style="width: ${survey.progress}%"></div>
+                    </div>
+                    <div class="task-actions">
+                        <button class="btn btn-small" data-id="${survey.id}">Start Survey</button>
+                        <button class="btn btn-small btn-secondary">Details</button>
+                    </div>
+                `;
+                
+                tasksGrid.appendChild(taskCard);
+            });
+            
+            // Add event listeners to survey buttons
+            document.querySelectorAll('.task-actions .btn-small').forEach(button => {
+                button.addEventListener('click', function() {
+                    const surveyId = this.getAttribute('data-id');
+                    if (surveyId) {
+                        alert(`Starting survey #${surveyId}. This would open the survey in a real application.`);
+                    }
+                });
+            });
+        }
+
+        // Get user-friendly error messages
+        function getErrorMessage(errorCode) {
+            switch (errorCode) {
+                case 'auth/invalid-email':
+                    return 'Invalid email address.';
+                case 'auth/user-disabled':
+                    return 'This account has been disabled.';
+                case 'auth/user-not-found':
+                    return 'No account found with this email.';
+                case 'auth/wrong-password':
+                    return 'Incorrect password.';
+                case 'auth/email-already-in-use':
+                    return 'This email is already registered.';
+                case 'auth/weak-password':
+                    return 'Password should be at least 6 characters.';
+                case 'auth/network-request-failed':
+                    return 'Network error. Please check your connection.';
+                default:
+                    return 'An error occurred. Please try again.';
+            }
+        }
+
+        // Check auth state on page load
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in
+                console.log("User is signed in:", user);
+                loadUserData(user);
+                showDashboard();
+            } else {
+                // User is signed out
+                console.log("User is signed out");
+                showAuth();
+            }
+        });
+    </script>
+</body>
+</html>
